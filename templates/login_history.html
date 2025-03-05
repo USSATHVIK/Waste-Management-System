@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Login History - EcoTrack{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Login History</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Status</th>
+                            <th>IP Address</th>
+                            <th>Browser</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if login_history %}
+                            {% for login in login_history %}
+                            <tr>
+                                <td>{{ login.login_time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                <td>
+                                    {% if login.status == 'success' %}
+                                    <span class="badge bg-success">Success</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Failed</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ login.ip_address }}</td>
+                                <td>{{ login.user_agent }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center">No login history available</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

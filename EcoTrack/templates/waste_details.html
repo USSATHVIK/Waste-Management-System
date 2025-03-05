@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}Waste Details - EcoTrack{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Add Waste Form -->
+        <div class="col-md-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Add Waste Details</h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('add_waste_details') }}">
+                        <div class="form-group mb-3">
+                            <label for="waste_type">Waste Type</label>
+                            <select class="form-control" id="waste_type" name="waste_type" required>
+                                <option value="Plastic">Plastic</option>
+                                <option value="Paper">Paper</option>
+                                <option value="Glass">Glass</option>
+                                <option value="Metal">Metal</option>
+                                <option value="Organic">Organic</option>
+                                <option value="Electronic">Electronic</option>
+                            </select>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="quantity">Quantity (kg)</label>
+                            <input type="number" step="0.01" class="form-control" id="quantity" name="quantity" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="status">Status</label>
+                            <select class="form-control" id="status" name="status">
+                                <option value="Pending">Pending</option>
+                                <option value="Collected">Collected</option>
+                                <option value="Recycled">Recycled</option>
+                            </select>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="notes">Notes</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Optional additional information"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Submit Waste Details</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Waste Statistics and Charts -->
+        <div class="col-md-8">
+            {% if collections_data %}
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Waste Type Distribution</h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="wasteTypeChart" style="height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Waste Collection Summary</h6>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Total Waste Collected
+                                    <span class="badge bg-primary rounded-pill">
+                                        {{ collections_data|sum(attribute='quantity')|round(2) }} kg
+                                    </span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Total Points Earned
+                                    <span class="badge bg-success rounded-pill">
+                                        {{ collections_data|sum(attribute='points_earned') }}
+                                    </span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Unique Waste Types
+                                    <span class="badge bg-info rounded-pill">
+                                        {{ waste_type_counts|length }}
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="card shadow mb-4">
+                <div class="card-body text-center">
+                    <h4 class="text-muted">No Waste Collections Yet</h4>
+                    <p class="text-muted">Start tracking your waste by adding your first waste collection.</p>
+                    <a href="#" class="btn btn-primary" onclick="document.querySelector('form').scrollIntoView({behavior: 'smooth'})">
+                        Add First Waste Collection
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recent Waste Collections Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Waste Collections</h6>
+                </div>
+                <div class="card-body">
+                    {% if collections_data %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Waste Type</th>
+                                    <th>Quantity (kg)</th>
+                                    <th>Status</th>
+                                    <th>Points Earned</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for collection in collections_data %}
+                                <tr>
+                                    <td>{{ collection.created_at }}</td>
+                                    <td>
+                                        <span class="badge bg-info">{{ collection.waste_type }}</span>
+                                    </td>
+                                    <td>{{ collection.quantity }}</td>
+                                    <td>
+                                        {% if collection.status == 'Recycled' %}
+                                        <span class="badge bg-success">{{ collection.status }}</span>
+                                        {% elif collection.status == 'Collected' %}
+                                        <span class="badge bg-warning">{{ collection.status }}</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{{ collection.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ collection.points_earned }}</td>
+                                    <td>{{ collection.notes }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center">
+                        <p class="text-muted">No waste collections to display.</p>
+                        <a href="#" class="btn btn-primary" onclick="document.querySelector('form').scrollIntoView({behavior: 'smooth'})">
+                            Add First Waste Collection
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Plotly.js -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Waste Type Distribution Chart
+    const wasteTypeCounts = {{ waste_type_counts|tojson|safe }};
+    
+    {% if collections_data %}
+    const wasteTypeData = [{
+        labels: Object.keys(wasteTypeCounts),
+        values: Object.values(wasteTypeCounts),
+        type: 'pie',
+        marker: {
+            colors: ['#007bff', '#28a745', '#dc3545', '#ffc107', '#17a2b8', '#6c757d']
+        }
+    }];
+
+    const wasteTypeLayout = {
+        title: 'Waste Type Distribution',
+        height: 300,
+        margin: {t: 30, b: 30, l: 30, r: 30}
+    };
+
+    Plotly.newPlot('wasteTypeChart', wasteTypeData, wasteTypeLayout);
+    {% endif %}
+});
+</script>
+{% endblock %}

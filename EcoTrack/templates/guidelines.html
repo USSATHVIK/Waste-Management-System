@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Waste Management Guidelines - EcoTrack{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">About EcoTrack</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-8 mb-4">
+                            <h3 class="text-primary">Our Mission</h3>
+                            <p class="lead">EcoTrack is a comprehensive waste management platform designed to empower individuals and communities to make sustainable environmental choices.</p>
+                            
+                            <h4 class="mt-4 text-success">Key Objectives</h4>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-leaf text-success mr-2"></i>
+                                    Promote responsible waste disposal and recycling
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-recycle text-success mr-2"></i>
+                                    Encourage sustainable waste management practices
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-chart-line text-success mr-2"></i>
+                                    Track and reward individual environmental contributions
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-globe text-success mr-2"></i>
+                                    Reduce carbon footprint through intelligent waste tracking
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-lg-4 mb-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">How EcoTrack Works</h5>
+                                    <p class="card-text">
+                                        <ol class="text-left">
+                                            <li>Log your waste collections</li>
+                                            <li>Get points for recycling</li>
+                                            <li>Track your environmental impact</li>
+                                            <li>Earn rewards and incentives</li>
+                                        </ol>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Waste Management Guidelines</h6>
+                </div>
+                <div class="card-body">
+                    {% if guidelines %}
+                        <div class="row">
+                            {% for guideline in guidelines %}
+                            <div class="col-lg-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header bg-light">
+                                        <h5 class="card-title mb-0 text-primary">{{ guideline.waste_type }}</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="card-text"><strong>Description:</strong><br>{{ guideline.description }}</p>
+                                        <p class="card-text"><strong>Disposal Method:</strong><br>{{ guideline.disposal_method }}</p>
+                                        {% if guideline.recycling_tips %}
+                                        <p class="card-text"><strong>Recycling Tips:</strong><br>{{ guideline.recycling_tips }}</p>
+                                        {% endif %}
+                                    </div>
+                                    {% if guideline.image_url %}
+                                    <img src="{{ guideline.image_url }}" class="card-img-bottom" alt="{{ guideline.waste_type }}" style="max-height: 200px; object-fit: cover;">
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <p>No guidelines available at the moment.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

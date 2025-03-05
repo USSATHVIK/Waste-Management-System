@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Recycling Centers Locator - EcoTrack{% endblock %}
+
+{% block extra_css %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<style>
+    .center-card {
+        transition: all 0.3s ease;
+    }
+    .center-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .waste-types .badge {
+        margin-right: 0.25rem;
+        margin-bottom: 0.25rem;
+    }
+    .center-item {
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    .center-item:hover {
+        background-color: #f8f9fa;
+    }
+    .center-item.active {
+        background-color: #e9ecef;
+    }
+    #map {
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Search and List Panel -->
+        <div class="col-md-4 p-4">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title mb-4">Recycling Centers</h4>
+                    
+                    <!-- Search Box -->
+                    <div class="form-group mb-4">
+                        <input type="text" id="searchInput" class="form-control" placeholder="Search by name or address...">
+                    </div>
+                    
+                    <!-- Centers List -->
+                    <div id="centersList" class="list-group">
+                        {% for center in centers %}
+                        <div class="list-group-item center-item" 
+                             data-lat="{{ center.latitude }}" 
+                             data-lng="{{ center.longitude }}"
+                             data-id="{{ center.id }}">
+                            <h5 class="mb-1">{{ center.name }}</h5>
+                            <p class="mb-1"><small>{{ center.address }}</small></p>
+                            <p class="mb-1"><small>{{ center.operating_hours }}</small></p>
+                            <p class="mb-0"><small>Contact: {{ center.contact }}</small></p>
+                            <div class="mt-2">
+                                <small class="text-muted">Accepts: 
+                                    {% for type in center.waste_types %}
+                                    <span class="badge bg-success me-1">{{ type }}</span>
+                                    {% endfor %}
+                                </small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Map Panel -->
+        <div class="col-md-8 p-4">
+            <div class="card">
+                <div class="card-body">
+                    <div id="map" style="height: 700px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+<script>
+    // Initialize map
+    const map = L.map('map').setView([12.9716, 77.5946], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    const markers = {};
+    
+    // Add markers for each center
+    {% for center in centers %}
+    (function() {
+        const marker = L.marker([{{ center.latitude }}, {{ center.longitude }}])
+            .bindPopup(`
+                <strong>{{ center.name }}</strong><br>
+                {{ center.address }}<br>
+                Hours: {{ center.operating_hours }}<br>
+                Contact: {{ center.contact }}
+            `);
+        marker.addTo(map);
+        markers[{{ center.id }}] = marker;
+    })();
+    {% endfor %}
+
+    // Search functionality
+    const searchInput = document.getElementById('searchInput');
+    const centerItems = document.querySelectorAll('.center-item');
+
+    searchInput.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        
+        centerItems.forEach(item => {
+            const text = item.textContent.toLowerCase();
+            if (text.includes(searchTerm)) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+
+    // Center item click handler
+    centerItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const lat = parseFloat(this.dataset.lat);
+            const lng = parseFloat(this.dataset.lng);
+            const id = parseInt(this.dataset.id);
+            
+            map.setView([lat, lng], 15);
+            markers[id].openPopup();
+            
+            // Highlight selected item
+            centerItems.forEach(i => i.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+</script>
+{% endblock %}

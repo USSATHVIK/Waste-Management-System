@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Schedule Waste Pickup - EcoTrack{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Pickup Scheduling Form -->
+        <div class="col-md-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Schedule Waste Pickup</h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('schedule_pickup') }}" id="pickupForm">
+                        <div class="form-group mb-3">
+                            <label for="waste_type">Waste Type <span class="text-danger">*</span></label>
+                            <select class="form-control" id="waste_type" name="waste_type" required>
+                                <option value="">Select Waste Type</option>
+                                <option value="Plastic">Plastic</option>
+                                <option value="Paper">Paper</option>
+                                <option value="Glass">Glass</option>
+                                <option value="Metal">Metal</option>
+                                <option value="Organic">Organic</option>
+                                <option value="Electronic">Electronic</option>
+                            </select>
+                            <div class="invalid-feedback">Please select a waste type.</div>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="quantity">Estimated Quantity (kg) <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" class="form-control" id="quantity" name="quantity" 
+                                   required min="0.1" max="100" placeholder="Enter quantity">
+                            <div class="invalid-feedback">Please enter a valid quantity between 0.1 and 100 kg.</div>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="pickup_date">Preferred Pickup Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="pickup_date" name="pickup_date" required>
+                            <div class="invalid-feedback">Please select a valid future date.</div>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="address">Pickup Address <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="address" name="address" rows="3" 
+                                      required placeholder="Full pickup address"></textarea>
+                            <div class="invalid-feedback">Please provide a pickup address.</div>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="instructions">Special Instructions (Optional)</label>
+                            <textarea class="form-control" id="instructions" name="instructions" rows="2" 
+                                      placeholder="Any additional notes for pickup"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Schedule Pickup</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pickup Schedule and Points -->
+        <div class="col-md-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Upcoming Pickups</h6>
+                </div>
+                <div class="card-body">
+                    {% if existing_pickups %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Waste Type</th>
+                                    <th>Quantity (kg)</th>
+                                    <th>Address</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pickup in existing_pickups %}
+                                <tr>
+                                    <td>{{ pickup.pickup_date.strftime('%Y-%m-%d') }}</td>
+                                    <td><span class="badge bg-info">{{ pickup.waste_type }}</span></td>
+                                    <td>{{ "%.2f"|format(pickup.quantity_estimate) }}</td>
+                                    <td>{{ pickup.pickup_address }}</td>
+                                    <td><span class="badge {% if pickup.status == 'Scheduled' %}bg-warning{% elif pickup.status == 'Completed' %}bg-success{% else %}bg-secondary{% endif %}">{{ pickup.status }}</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <p class="text-muted">No upcoming pickups scheduled.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('pickupForm');
+    const dateInput = document.getElementById('pickup_date');
+    const quantityInput = document.getElementById('quantity');
+    
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.setAttribute('min', today);
+    
+    form.addEventListener('submit', function(event) {
+        let isValid = true;
+        
+        // Validate date
+        const selectedDate = new Date(dateInput.value);
+        const currentDate = new Date();
+        if (selectedDate < currentDate) {
+            dateInput.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            dateInput.classList.remove('is-invalid');
+        }
+        
+        // Validate quantity
+        const quantity = parseFloat(quantityInput.value);
+        if (isNaN(quantity) || quantity <= 0 || quantity > 100) {
+            quantityInput.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            quantityInput.classList.remove('is-invalid');
+        }
+        
+        if (!isValid) {
+            event.preventDefault();
+        }
+    });
+    
+    // Clear validation on input change
+    form.querySelectorAll('input, select, textarea').forEach(input => {
+        input.addEventListener('input', function() {
+            this.classList.remove('is-invalid');
+        });
+    });
+});
+</script>
+{% endblock %}
